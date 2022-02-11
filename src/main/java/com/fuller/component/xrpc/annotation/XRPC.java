@@ -15,14 +15,24 @@ import java.lang.annotation.Target;
 public @interface XRPC {
 
     /**
-     * 服务名称
+     * 微服务的应用名称
      */
-    String name();
+    String appName();
+
+    /**
+     * 当前服务暴露的名称
+     */
+    String serviceName() default "";
 
     /**
      * 服务端口号
      */
     int port() default 8001;
+
+    /**
+     * 命名空间
+     */
+    String namespace() default "";
 
     /**
      * 版本号

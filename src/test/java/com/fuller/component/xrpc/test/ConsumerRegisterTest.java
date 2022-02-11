@@ -29,7 +29,7 @@ public class ConsumerRegisterTest {
 
     }
 
-    @XRPC(name = "${spring.service.demo.name}", port = 8888)
+    @XRPC(appName = "${spring.service.demo.name}", port = 8888)
     public interface DemoService {
 
         String say();

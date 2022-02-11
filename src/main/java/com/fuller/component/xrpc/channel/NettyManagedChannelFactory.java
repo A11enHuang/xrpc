@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Allen Huang on 2022/2/11
  */
 @Slf4j
-public class NettyChannelRegister implements ChannelRegister, DisposableBean {
+public class NettyManagedChannelFactory implements ManagedChannelFactory, DisposableBean {
 
     private final Map<String, ManagedChannel> channelMap = new ConcurrentHashMap<>();
 

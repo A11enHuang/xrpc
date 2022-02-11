@@ -1,4 +1,4 @@
-package com.fuller.component.xrpc;
+package com.fuller.component.xrpc.register;
 
 import io.grpc.MethodDescriptor;
 
@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
  *
  * @author Allen Huang on 2022/2/10
  */
+@SuppressWarnings("rawtypes")
 public interface MarshallerRegister {
 
     /**

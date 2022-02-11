@@ -27,10 +27,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 扫描@XRPC注解并生成代理对象，注册到Spring容器中
@@ -97,9 +94,16 @@ public class XRPCRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoa
         String className = annotationMetadata.getClassName();
         BeanDefinitionBuilder definition = BeanDefinitionBuilder
                 .genericBeanDefinition(InvokerFactoryBean.class);
+
+        ServiceDefinition serviceDefinition = new ServiceDefinition();
+        serviceDefinition.setAppName(getAppName(attributes));
+        serviceDefinition.setPort(getPort(attributes));
+        serviceDefinition.setVersion(getVersion(attributes));
+        serviceDefinition.setServiceName(getServiceName(attributes));
+
         definition.addPropertyValue("type", className);
-        definition.addPropertyValue("name", getName(attributes));
-        definition.addPropertyValue("port", getPort(attributes));
+        definition.addPropertyValue("serviceDefinition", serviceDefinition);
+
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
 
         AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
@@ -137,9 +141,20 @@ public class XRPCRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoa
         return (int) attributes.get("port");
     }
 
-    private String getName(Map<String, Object> attributes) {
-        String name = (String) attributes.get("name");
+    private String getVersion(Map<String, Object> attributes) {
+        return (String) attributes.get("version");
+    }
+
+    private String getAppName(Map<String, Object> attributes) {
+        String name = (String) attributes.get("appName");
         return this.environment.resolvePlaceholders(name);
+    }
+
+    private String getServiceName(Map<String, Object> attributes) {
+        return Optional.ofNullable((String) attributes.get("serviceName"))
+                .map(environment::resolvePlaceholders)
+                .filter(StringUtils::hasText)
+                .orElseGet(() -> getAppName(attributes));
     }
 
     protected Set<String> getBasePackages(AnnotationMetadata importingClassMetadata) {
