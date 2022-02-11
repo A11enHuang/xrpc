@@ -1,8 +1,9 @@
-package com.fuller.component.xrpc.configure;
+package com.fuller.component.xrpc;
 
 import com.fuller.component.xrpc.annotation.EnableXRPC;
 import com.fuller.component.xrpc.annotation.XRPC;
 import com.fuller.component.xrpc.consumer.InvokerFactoryBean;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
@@ -35,6 +37,8 @@ import java.util.Set;
  *
  * @author Allen Huang on 2022/2/11
  */
+@Slf4j
+@Import(XRPCAutoConfiguration.class)
 public class XRPCRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
 
     private ResourceLoader resourceLoader;
@@ -84,6 +88,7 @@ public class XRPCRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoa
                 registerXRPCClient(registry, annotationMetadata, attributes);
             }
         }
+        log.info("[XRPC]已经完成{}个消费者实例注册.", candidateComponents.size());
     }
 
     private void registerXRPCClient(BeanDefinitionRegistry registry,
@@ -112,6 +117,9 @@ public class XRPCRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoa
                 new String[]{alias});
 
         BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
+        if (log.isDebugEnabled()) {
+            log.debug("成功注册XRPC客户端:{}", className);
+        }
     }
 
     private String getQualifier(Map<String, Object> client) {
@@ -130,7 +138,8 @@ public class XRPCRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoa
     }
 
     private String getName(Map<String, Object> attributes) {
-        return (String) attributes.get("name");
+        String name = (String) attributes.get("name");
+        return this.environment.resolvePlaceholders(name);
     }
 
     protected Set<String> getBasePackages(AnnotationMetadata importingClassMetadata) {

@@ -1,6 +1,6 @@
 package com.fuller.component.xrpc.annotation;
 
-import com.fuller.component.xrpc.configure.XRPCRegistrar;
+import com.fuller.component.xrpc.XRPCRegistrar;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;

@@ -1,6 +1,8 @@
 package com.fuller.component.xrpc.consumer;
 
+import com.fuller.component.xrpc.channel.ChannelRegister;
 import com.fuller.component.xrpc.util.ClassLoaderUtil;
+import io.grpc.ManagedChannel;
 import lombok.Data;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
@@ -23,6 +25,7 @@ public class InvokerFactoryBean implements FactoryBean<Object>, ApplicationConte
 
     private String name;
 
+    //版本号字段，是一个预留的字段，目前还没有什么用途
     private String version;
 
     private ApplicationContext applicationContext;
@@ -30,7 +33,14 @@ public class InvokerFactoryBean implements FactoryBean<Object>, ApplicationConte
     @Override
     public Object getObject() throws Exception {
         ClassLoader classLoader = ClassLoaderUtil.getContextClassLoader();
+        ManagedChannel channel = getManagedChannel();
+        //TODO: 构建存根，每一个存根都是一个ClientCaller
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{type}, new Invoker(Map.of()));
+    }
+
+    private ManagedChannel getManagedChannel() {
+        ChannelRegister channelRegister = this.applicationContext.getBean(ChannelRegister.class);
+        return channelRegister.getManagedChannel(this.name, this.port);
     }
 
     @Override

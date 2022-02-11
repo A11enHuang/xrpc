@@ -1,4 +1,4 @@
-package com.fuller.component.xrpc;
+package com.fuller.component.xrpc.channel;
 
 import io.grpc.ManagedChannel;
 
@@ -7,6 +7,7 @@ import io.grpc.ManagedChannel;
  */
 public interface ChannelRegister {
 
+    //TODO: channel的应该需要重新设计
     ManagedChannel getManagedChannel(String host, int port);
 
 }
