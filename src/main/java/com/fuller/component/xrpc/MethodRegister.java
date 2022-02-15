@@ -1,6 +1,5 @@
 package com.fuller.component.xrpc;
 
-import com.fuller.component.xrpc.ServiceDefinition;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 
@@ -24,6 +23,13 @@ public interface MethodRegister {
      */
     MethodDescriptor getMethodDescriptor(ServiceDefinition definition, Method method);
 
+    /**
+     * 根据方法获取该方法的服务端处理器。此方法是线程安全的。
+     *
+     * @param definition 服务的定义信息
+     * @param method     目标方法
+     * @return 返回handler实例
+     */
     ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method);
 
 }
