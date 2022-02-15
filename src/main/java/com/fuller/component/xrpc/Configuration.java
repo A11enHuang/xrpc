@@ -6,6 +6,7 @@ import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServiceDescriptor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -19,6 +20,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @SuppressWarnings("rawtypes")
+@Slf4j
 public class Configuration implements MethodRegister, ServiceRegister {
 
     private final Map<Method, MethodDescriptor> methodDescriptors = new HashMap<>();
@@ -50,8 +52,14 @@ public class Configuration implements MethodRegister, ServiceRegister {
     }
 
     @Override
-    public ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method) {
-        return null;
+    public ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method, Object target) {
+        for (MethodParser parser : methodParsers) {
+            ServerCallHandler serverCallHandler =  parser.parseServerCallHandler(method, target);
+            if (serverCallHandler != null) {
+               return serverCallHandler;
+            }
+        }
+        throw new RpcException("找不到服务调用类型." + definition.getType().getName() + "#" + method.getName());
     }
 
 

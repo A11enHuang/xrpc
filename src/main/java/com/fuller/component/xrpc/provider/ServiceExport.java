@@ -61,7 +61,7 @@ public class ServiceExport implements CommandLineRunner, ApplicationContextAware
                 ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(serviceDescriptor);
                 for (Method method : anInterface.getDeclaredMethods()) {
                     MethodDescriptor md = methodRegister.getMethodDescriptor(serviceDefinition, method);
-                    ServerCallHandler handler = methodRegister.getServerCallHandler(serviceDefinition, method);
+                    ServerCallHandler handler = methodRegister.getServerCallHandler(serviceDefinition, method, bean);
                     builder.addMethod(md, handler);
                 }
                 serverBuilder.addService(builder.build());

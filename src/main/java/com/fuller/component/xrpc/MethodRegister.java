@@ -1,6 +1,5 @@
 package com.fuller.component.xrpc;
 
-import com.fuller.component.xrpc.ServiceDefinition;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 
@@ -24,6 +23,15 @@ public interface MethodRegister {
      */
     MethodDescriptor getMethodDescriptor(ServiceDefinition definition, Method method);
 
-    ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method);
+    /**
+     * 根据目标方法、服务定义和服务的目标对象，生成grpc远程调用代理的对象
+     *
+     *
+     * @param definition 服务定义
+     * @param method 目标方法
+     * @param target 目标方法实例
+     * @return  远程调用代理的对象
+     */
+    ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method, Object target);
 
 }

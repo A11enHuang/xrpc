@@ -28,9 +28,10 @@ public interface MethodParser extends Ordered {
      * 解析此方法并生成服务端调用handler实例
      *
      * @param method 需要解析的方法
+     * @param target 调用目标对象
      * @return handler实例
      */
-    ServerCallHandler parseServerCallHandler(Method method);
+    ServerCallHandler parseServerCallHandler(Method method, Object target);
 
     @Override
     default int getOrder() {
