@@ -23,6 +23,7 @@ import java.util.Map;
  * @author Allen Huang on 2022/2/11
  */
 @Component
+@SuppressWarnings("rawtypes")
 public class ServiceExport implements CommandLineRunner, ApplicationContextAware, EnvironmentAware, DisposableBean {
 
     private ApplicationContext applicationContext;

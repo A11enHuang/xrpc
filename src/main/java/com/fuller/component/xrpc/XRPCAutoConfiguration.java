@@ -35,8 +35,14 @@ public class XRPCAutoConfiguration {
 
     @Bean
     @ConditionalOnClass(ObjectMapper.class)
-    public MarshallerFactory jacksonMarshallerFactory(ObjectMapper objectMapper){
+    public MarshallerFactory jacksonMarshallerFactory(ObjectMapper objectMapper) {
         return new JacksonMarshallerFactory(objectMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(MarshallerRegister.class)
+    public MarshallerRegister marshallerRegister(MarshallerFactory marshallerFactory) {
+        return new DefaultMarshallerRegister(marshallerFactory);
     }
 
 }
