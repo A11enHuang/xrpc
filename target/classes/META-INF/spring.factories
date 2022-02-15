@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.fuller.component.xrpc.XRPCAutoConfiguration
