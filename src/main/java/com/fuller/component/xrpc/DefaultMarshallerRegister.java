@@ -2,6 +2,7 @@ package com.fuller.component.xrpc;
 
 import com.fuller.component.xrpc.marshaller.MarshallerFactory;
 import com.fuller.component.xrpc.marshaller.StringMarshaller;
+import com.fuller.component.xrpc.marshaller.VoidMarshaller;
 import io.grpc.MethodDescriptor;
 
 import java.lang.reflect.Type;
@@ -22,6 +23,8 @@ public class DefaultMarshallerRegister implements MarshallerRegister {
         this.defaultFactory = defaultFactory;
         //这里可以初始化一些默认的序列化
         this.registerMarshaller(String.class, new StringMarshaller());
+        this.registerMarshaller(void.class, new VoidMarshaller());
+        this.registerMarshaller(Void.class, new VoidMarshaller());
     }
 
     @Override
