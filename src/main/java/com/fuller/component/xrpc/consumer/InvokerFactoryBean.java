@@ -3,7 +3,7 @@ package com.fuller.component.xrpc.consumer;
 import com.fuller.component.xrpc.ServiceDefinition;
 import com.fuller.component.xrpc.channel.ManagedChannelFactory;
 import com.fuller.component.xrpc.checker.ServiceChecker;
-import com.fuller.component.xrpc.register.Configuration;
+import com.fuller.component.xrpc.Configuration;
 import com.fuller.component.xrpc.util.ClassLoaderUtil;
 import io.grpc.ManagedChannel;
 import lombok.Data;

@@ -1,7 +1,8 @@
-package com.fuller.component.xrpc.register;
+package com.fuller.component.xrpc;
 
 import com.fuller.component.xrpc.ServiceDefinition;
 import io.grpc.MethodDescriptor;
+import io.grpc.ServerCallHandler;
 
 import java.lang.reflect.Method;
 
@@ -22,5 +23,7 @@ public interface MethodRegister {
      * @return 返回方法描述实例
      */
     MethodDescriptor getMethodDescriptor(ServiceDefinition definition, Method method);
+
+    ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method);
 
 }

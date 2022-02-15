@@ -2,10 +2,9 @@ package com.fuller.component.xrpc.provider;
 
 import com.fuller.component.xrpc.ServiceDefinition;
 import com.fuller.component.xrpc.annotation.XRPC;
-import com.fuller.component.xrpc.register.MethodRegister;
-import com.fuller.component.xrpc.register.ServiceRegister;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import com.fuller.component.xrpc.MethodRegister;
+import com.fuller.component.xrpc.ServiceRegister;
+import io.grpc.*;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
@@ -17,6 +16,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -55,13 +55,15 @@ public class ServiceExport implements CommandLineRunner, ApplicationContextAware
         Class<?> target = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         for (Class<?> anInterface : target.getInterfaces()) {
             if (anInterface.isAnnotationPresent(XRPC.class)) {
-                System.out.println(anInterface.getName());
                 ServiceDefinition serviceDefinition = ServiceDefinition.build(anInterface, environment);
-                System.out.println(serviceDefinition);
-//                ServiceDescriptor serviceDescriptor = serviceRegister.getServiceDescriptor(serviceDefinition);
-//                ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(serviceDescriptor);
-                //TODO: 添加对方法的定义
-//                serverBuilder.addService(builder.build());
+                ServiceDescriptor serviceDescriptor = serviceRegister.getServiceDescriptor(serviceDefinition);
+                ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(serviceDescriptor);
+                for (Method method : anInterface.getDeclaredMethods()) {
+                    MethodDescriptor md = methodRegister.getMethodDescriptor(serviceDefinition, method);
+                    ServerCallHandler handler = methodRegister.getServerCallHandler(serviceDefinition, method);
+                    builder.addMethod(md, handler);
+                }
+                serverBuilder.addService(builder.build());
             }
         }
     }
@@ -77,4 +79,5 @@ public class ServiceExport implements CommandLineRunner, ApplicationContextAware
             grpcServer.shutdown();
         }
     }
+
 }

@@ -1,4 +1,4 @@
-package com.fuller.component.xrpc.register;
+package com.fuller.component.xrpc;
 
 import io.grpc.MethodDescriptor;
 

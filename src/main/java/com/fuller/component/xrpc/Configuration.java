@@ -1,9 +1,11 @@
-package com.fuller.component.xrpc.register;
+package com.fuller.component.xrpc;
 
-import com.fuller.component.xrpc.ServiceDefinition;
 import com.fuller.component.xrpc.exception.RpcException;
+import com.fuller.component.xrpc.marshaller.MarshallerFactory;
+import com.fuller.component.xrpc.marshaller.StringMarshaller;
 import com.fuller.component.xrpc.parser.MethodParser;
 import io.grpc.MethodDescriptor;
+import io.grpc.ServerCallHandler;
 import io.grpc.ServiceDescriptor;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +58,11 @@ public class Configuration implements MethodRegister, MarshallerRegister, Servic
             throw new RpcException("方法无法被解析." + definition.getType().getName() + "#" + method.getName());
         }
         return methodDescriptor;
+    }
+
+    @Override
+    public ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method) {
+        return null;
     }
 
     @Override

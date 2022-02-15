@@ -1,4 +1,4 @@
-package com.fuller.component.xrpc.register;
+package com.fuller.component.xrpc.marshaller;
 
 import com.fuller.component.xrpc.exception.RpcException;
 import io.grpc.MethodDescriptor;

@@ -1,4 +1,4 @@
-package com.fuller.component.xrpc.register;
+package com.fuller.component.xrpc.marshaller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
