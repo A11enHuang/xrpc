@@ -5,7 +5,7 @@ import com.fuller.component.xrpc.exception.RpcException;
 import com.fuller.component.xrpc.parser.MethodParser;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServiceDescriptor;
-import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -16,9 +16,9 @@ import java.util.Map;
 /**
  * @author Allen Huang on 2022/2/11
  */
-@RequiredArgsConstructor
+@Component
 @SuppressWarnings("rawtypes")
-public class Configuration implements MethodDescriptorRegister, MarshallerRegister, ServiceRegister {
+public class Configuration implements MethodRegister, MarshallerRegister, ServiceRegister {
 
     private final Map<Method, MethodDescriptor> methodDescriptors = new HashMap<>();
     private final Map<Class<?>, ServiceDescriptor> serviceDescriptors = new HashMap<>();
@@ -27,6 +27,14 @@ public class Configuration implements MethodDescriptorRegister, MarshallerRegist
     private final List<MethodParser> methodParsers;
     private final MarshallerFactory marshallerFactory;
 
+    public Configuration(List<MethodParser> methodParsers, MarshallerFactory marshallerFactory) {
+        this.methodParsers = methodParsers;
+        this.marshallerFactory = marshallerFactory;
+
+        //这里可以初始化一些默认的序列化
+        this.registerMarshaller(String.class, new StringMarshaller());
+    }
+
     @Override
     public MethodDescriptor getMethodDescriptor(ServiceDefinition definition, Method method) {
         MethodDescriptor methodDescriptor = methodDescriptors.get(method);
@@ -34,8 +42,8 @@ public class Configuration implements MethodDescriptorRegister, MarshallerRegist
             synchronized (methodDescriptors) {
                 methodDescriptor = methodDescriptors.get(method);
                 if (methodDescriptor == null) {
-                    for (MethodParser factory : methodParsers) {
-                        methodDescriptor = factory.parseDescriptor(definition, method);
+                    for (MethodParser parser : methodParsers) {
+                        methodDescriptor = parser.parseDescriptor(definition, method);
                         if (methodDescriptor != null) {
                             methodDescriptors.put(method, methodDescriptor);
                             break;

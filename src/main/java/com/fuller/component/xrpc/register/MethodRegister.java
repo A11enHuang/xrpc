@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
  * @author Allen Huang on 2022/2/10
  */
 @SuppressWarnings("rawtypes")
-public interface MethodDescriptorRegister {
+public interface MethodRegister {
 
     /**
      * 根据目标方法获取该方法的gRPC描述。此方法是线程安全的。
