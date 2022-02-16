@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author Allen Huang on 2022/2/11
@@ -12,14 +14,27 @@ import java.io.InputStream;
 @Slf4j
 public class VoidMarshaller implements MethodDescriptor.Marshaller<Void> {
 
+    private static Void INSTANCE;
+
+    static {
+        Constructor<?>[] constructors = Void.class.getDeclaredConstructors();
+        Constructor constructor = constructors[0];
+        constructor.setAccessible(true);
+        try {
+            INSTANCE = (Void) constructor.newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            //ignore
+        }
+    }
+
     @Override
     public InputStream stream(Void value) {
-        return new ByteArrayInputStream(new byte[]{'a'});
+        return new ByteArrayInputStream(new byte[]{});
     }
 
     @Override
     public Void parse(InputStream stream) {
-        return null;
+        return INSTANCE;
     }
-    
+
 }
