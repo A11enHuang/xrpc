@@ -1,10 +1,11 @@
 package com.fuller.component.xrpc.provider;
 
-import com.fuller.component.xrpc.ServiceDefinition;
-import com.fuller.component.xrpc.annotation.XRPC;
 import com.fuller.component.xrpc.MethodRegister;
+import com.fuller.component.xrpc.ServiceDefinition;
 import com.fuller.component.xrpc.ServiceRegister;
+import com.fuller.component.xrpc.annotation.XRPC;
 import io.grpc.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
@@ -22,6 +23,7 @@ import java.util.Map;
 /**
  * @author Allen Huang on 2022/2/11
  */
+@Slf4j
 @Component
 @SuppressWarnings("rawtypes")
 public class ServiceExport implements CommandLineRunner, ApplicationContextAware, EnvironmentAware, DisposableBean {
@@ -50,6 +52,7 @@ public class ServiceExport implements CommandLineRunner, ApplicationContextAware
         beans.forEach((name, bean) -> this.bindService(bean, serverBuilder));
         this.grpcServer = serverBuilder.build();
         this.grpcServer.start();
+        log.info("[gRPC]Server启动完成.监听端口号:8001");
     }
 
     private void bindService(Object bean, ServerBuilder<?> serverBuilder) {
