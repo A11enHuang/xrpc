@@ -7,7 +7,6 @@ import io.grpc.ServerCallHandler;
 import io.grpc.stub.ServerCalls;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -17,7 +16,7 @@ import java.lang.reflect.Type;
  * @author Allen Huang on 2022/2/16
  */
 @Component
-public class VoidMethodParser extends BaseMethodParser {
+public class VoidMethodParser extends InvokeMethodParser {
 
     public VoidMethodParser(MarshallerRegister marshallerRegister) {
         super(marshallerRegister);
@@ -27,10 +26,8 @@ public class VoidMethodParser extends BaseMethodParser {
     protected ServerCallHandler buildServerCallHandler(Method method, Object target) {
         return ServerCalls.asyncUnaryCall((request, responseObserver) -> {
             try {
-                method.invoke(target);
+                invoke(target, method, null);
                 responseObserver.onNext(null);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                responseObserver.onError(e);
             } finally {
                 responseObserver.onCompleted();
             }
