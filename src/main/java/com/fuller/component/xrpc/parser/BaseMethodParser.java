@@ -1,7 +1,10 @@
 package com.fuller.component.xrpc.parser;
 
+import com.fuller.component.xrpc.Invoker;
 import com.fuller.component.xrpc.MarshallerRegister;
 import com.fuller.component.xrpc.ServiceDefinition;
+import com.fuller.component.xrpc.channel.ManagedChannelFactory;
+import com.fuller.component.xrpc.consumer.ClientCaller;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Allen Huang on 2022/2/15
  */
 @RequiredArgsConstructor
-public abstract class BaseMethodParser implements MethodParser {
+public abstract class BaseMethodParser extends Invoker implements MethodParser {
 
     protected final MarshallerRegister marshallerRegister;
+
+    protected final ManagedChannelFactory channelFactory;
 
     protected final Map<Method, Boolean> supportCache = new ConcurrentHashMap<>();
 
@@ -47,9 +52,20 @@ public abstract class BaseMethodParser implements MethodParser {
         return null;
     }
 
+    @Override
+    public ClientCaller parseClientCaller(ServiceDefinition definition, Method method) {
+        Boolean isSupport = Optional.ofNullable(supportCache.get(method)).orElse(Boolean.FALSE);
+        if (isSupport) {
+            return buildClientCaller(definition, method);
+        }
+        return null;
+    }
+
     protected boolean isSupport(ServiceDefinition definition, Method method) {
         return supportCache.computeIfAbsent(method, k -> this.checkMethod(definition, k));
     }
+
+    protected abstract ClientCaller buildClientCaller(ServiceDefinition definition, Method method);
 
     /**
      * 创建ServerCallHandler实例

@@ -1,5 +1,6 @@
 package com.fuller.component.xrpc;
 
+import com.fuller.component.xrpc.consumer.ClientCaller;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 
@@ -34,5 +35,6 @@ public interface MethodRegister {
      */
     ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method, Object target);
 
+    ClientCaller getClientCaller(ServiceDefinition definition, Method method);
 
 }

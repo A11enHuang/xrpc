@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
@@ -38,8 +39,11 @@ public class InvokerFactoryBean implements FactoryBean<Object>, ApplicationConte
         checkServiceDefinition();
         //第二步: 获取channel实例
         ManagedChannel channel = getManagedChannel();
+        for (Method method : type.getDeclaredMethods()) {
+            
+        }
         //TODO: 构建存根，每一个存根都是一个ClientCaller
-        return Proxy.newProxyInstance(classLoader, new Class<?>[]{type}, new Invoker(Map.of()));
+        return Proxy.newProxyInstance(classLoader, new Class<?>[]{type}, new ConsumerInvoker(Map.of()));
     }
 
     private void checkServiceDefinition() {

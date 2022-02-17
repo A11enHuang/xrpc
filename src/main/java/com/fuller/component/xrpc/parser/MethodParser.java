@@ -1,6 +1,7 @@
 package com.fuller.component.xrpc.parser;
 
 import com.fuller.component.xrpc.ServiceDefinition;
+import com.fuller.component.xrpc.consumer.ClientCaller;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 import org.springframework.core.Ordered;
@@ -32,6 +33,8 @@ public interface MethodParser extends Ordered {
      * @return handler实例
      */
     ServerCallHandler parseServerCallHandler(Method method, Object target);
+
+    ClientCaller parseClientCaller(ServiceDefinition definition, Method method);
 
     @Override
     default int getOrder() {

@@ -1,15 +1,10 @@
 package com.fuller.component.xrpc.test;
 
 import com.fuller.component.xrpc.MarshallerRegister;
+import com.fuller.component.xrpc.MethodRegister;
+import com.fuller.component.xrpc.ServiceDefinition;
 import com.fuller.component.xrpc.annotation.XRPC;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.ManagedChannel;
-import io.grpc.MethodDescriptor;
-import io.grpc.netty.NettyChannelBuilder;
-import io.grpc.stub.AbstractBlockingStub;
-import io.grpc.stub.AbstractStub;
-import io.grpc.stub.ClientCalls;
+import com.fuller.component.xrpc.consumer.ClientCaller;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -29,7 +24,7 @@ public class ConsumerRegisterTest {
     private DemoService demoService;
 
     @Autowired
-    private MarshallerRegister marshallerRegister;
+    private MethodRegister methodRegister;
 
     @Test
     public void registerTest() {
@@ -37,29 +32,17 @@ public class ConsumerRegisterTest {
     }
 
     @Test
-    public void clientTest(){
-        ManagedChannel channel = NettyChannelBuilder.forAddress("127.0.0.1", 8001)
-                .usePlaintext()
-                .build();
-        AbstractStub.StubFactory factory = (channel1, callOptions) -> new AbstractBlockingStub(channel1,callOptions){
-            @Override
-            protected AbstractStub build(Channel channel, CallOptions callOptions) {
-                return null;
-            }
-        };
-
-        AbstractStub stub = AbstractBlockingStub.newStub(factory, channel);
+    public void clientTest() {
         Class<DemoService> target = DemoService.class;
         Method method = target.getDeclaredMethods()[0];
-        MethodDescriptor methodDescriptor = MethodDescriptor.newBuilder()
-                .setType(MethodDescriptor.MethodType.UNARY)
-                .setFullMethodName("DemoService" + "/" + method.getName())
-                .setSampledToLocalTracing(true)
-                .setRequestMarshaller(marshallerRegister.getMarshaller(String.class))
-                .setResponseMarshaller(marshallerRegister.getMarshaller(method.getGenericReturnType()))
-                .build();
-        Object result = ClientCalls.blockingUnaryCall(stub.getChannel(), methodDescriptor, stub.getCallOptions(), "test");
-        System.out.println("--------------" + result);
+        ServiceDefinition sd = new ServiceDefinition();
+        sd.setType(target);
+        sd.setServiceName(target.getSimpleName());
+        sd.setAppName("127.0.0.1");
+        sd.setPort(8001);
+        ClientCaller clientCaller = methodRegister.getClientCaller(sd, method);
+        Object response = clientCaller.call(new Object[]{"allen"});
+        System.out.println(response);
     }
 
     @Configuration
@@ -76,27 +59,23 @@ public class ConsumerRegisterTest {
     @XRPC(appName = "service-demo.microservice")
     public interface DemoService {
 
-        String say(String hello);
-
-    }
-
-    @XRPC(appName = "service-demo.microservice")
-    public interface CarService {
-
         void run();
 
+        String hello(String name);
+
     }
 
-    public static class DemoServiceImpl implements DemoService, CarService {
-
-        @Override
-        public String say(String hello) {
-            return "hello world!" + hello;
-        }
+    public static class DemoServiceImpl implements DemoService {
 
         @Override
         public void run() {
+            System.out.println("run被调用了");
+        }
 
+        @Override
+        public String hello(String name) {
+            System.out.println(name + " say hello!");
+            return "hello world";
         }
     }
 

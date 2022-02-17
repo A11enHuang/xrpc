@@ -1,5 +1,6 @@
 package com.fuller.component.xrpc;
 
+import com.fuller.component.xrpc.consumer.ClientCaller;
 import com.fuller.component.xrpc.exception.RpcException;
 import com.fuller.component.xrpc.parser.MethodParser;
 import io.grpc.MethodDescriptor;
@@ -54,12 +55,23 @@ public class Configuration implements MethodRegister, ServiceRegister {
     @Override
     public ServerCallHandler getServerCallHandler(ServiceDefinition definition, Method method, Object target) {
         for (MethodParser parser : methodParsers) {
-            ServerCallHandler serverCallHandler =  parser.parseServerCallHandler(method, target);
+            ServerCallHandler serverCallHandler = parser.parseServerCallHandler(method, target);
             if (serverCallHandler != null) {
-               return serverCallHandler;
+                return serverCallHandler;
             }
         }
         throw new RpcException("找不到服务调用类型." + definition.getType().getName() + "#" + method.getName());
+    }
+
+    @Override
+    public ClientCaller getClientCaller(ServiceDefinition definition, Method method) {
+        for (MethodParser parser : methodParsers) {
+            ClientCaller clientCaller = parser.parseClientCaller(definition, method);
+            if (clientCaller != null) {
+                return clientCaller;
+            }
+        }
+        throw new RpcException("无法为目标方法创建客户端存根." + definition.getType().getName() + "#" + method.getName());
     }
 
 

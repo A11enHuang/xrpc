@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Allen Huang on 2022/2/11
  */
 @RequiredArgsConstructor
-public class Invoker implements InvocationHandler {
+public class ConsumerInvoker implements InvocationHandler {
 
     private final Map<Method, ClientCaller> callerMap;
 
