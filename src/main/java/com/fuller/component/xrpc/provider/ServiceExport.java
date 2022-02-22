@@ -52,13 +52,14 @@ public class ServiceExport implements CommandLineRunner, ApplicationContextAware
         beans.forEach((name, bean) -> this.bindService(bean, serverBuilder));
         this.grpcServer = serverBuilder.build();
         this.grpcServer.start();
-        log.info("[gRPC]Server启动完成.监听端口号:8001");
+        log.info("[gRPC][Provider]Server启动完成.监听端口号:8001");
     }
 
     private void bindService(Object bean, ServerBuilder<?> serverBuilder) {
         Class<?> target = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         for (Class<?> anInterface : target.getInterfaces()) {
             if (anInterface.isAnnotationPresent(XRPC.class)) {
+                int count = 0;
                 ServiceDefinition serviceDefinition = ServiceDefinition.build(anInterface, environment);
                 ServiceDescriptor serviceDescriptor = serviceRegister.getServiceDescriptor(serviceDefinition);
                 ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(serviceDescriptor);
@@ -66,8 +67,10 @@ public class ServiceExport implements CommandLineRunner, ApplicationContextAware
                     MethodDescriptor md = methodRegister.getMethodDescriptor(serviceDefinition, method);
                     ServerCallHandler handler = methodRegister.getServerCallHandler(serviceDefinition, method, bean);
                     builder.addMethod(md, handler);
+                    count++;
                 }
                 serverBuilder.addService(builder.build());
+                log.info("[gRPC][Provider]{}成功暴露{}个gRPC方法.", target.getName(), count);
             }
         }
     }

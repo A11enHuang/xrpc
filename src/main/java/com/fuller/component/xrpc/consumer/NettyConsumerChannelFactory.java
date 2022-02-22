@@ -1,5 +1,6 @@
-package com.fuller.component.xrpc.channel;
+package com.fuller.component.xrpc.consumer;
 
+import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -12,12 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Allen Huang on 2022/2/11
  */
 @Slf4j
-public class NettyManagedChannelFactory implements ManagedChannelFactory, DisposableBean {
+public class NettyConsumerChannelFactory implements ConsumerChannelFactory, DisposableBean {
 
     private final Map<String, ManagedChannel> channelMap = new ConcurrentHashMap<>();
 
     @Override
-    public ManagedChannel getManagedChannel(String host, int port) {
+    public Channel getChannel(String host, int port) {
         String key = host + ":" + port;
         return channelMap.computeIfAbsent(key, k ->
                 NettyChannelBuilder.forAddress(host, port)

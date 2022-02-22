@@ -13,4 +13,15 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface XRPCReference {
+
+    /**
+     * 配置直连模式，此消费者将会直连目标url
+     */
+    String hostname() default "";
+
+    /**
+     * 配置直连模式的端口号
+     */
+    int port() default -1;
+
 }

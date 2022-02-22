@@ -1,55 +1,48 @@
 package com.fuller.component.xrpc.parser;
 
+import com.fuller.component.xrpc.Invoker;
 import com.fuller.component.xrpc.MarshallerRegister;
 import com.fuller.component.xrpc.ServiceDefinition;
-import com.fuller.component.xrpc.channel.ManagedChannelFactory;
+import com.fuller.component.xrpc.consumer.ConsumerChannelFactory;
 import com.fuller.component.xrpc.consumer.ClientCaller;
-import io.grpc.CallOptions;
-import io.grpc.ManagedChannel;
-import io.grpc.MethodDescriptor;
-import io.grpc.ServerCallHandler;
+import io.grpc.*;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.ServerCalls;
+import io.grpc.stub.StreamObserver;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
 
 /**
  * @author Allen Huang on 2022/2/17
  */
+@Slf4j
 public abstract class UnaryMethodParser extends BaseMethodParser {
 
     public UnaryMethodParser(MarshallerRegister marshallerRegister,
-                             ManagedChannelFactory channelFactory) {
+                             ConsumerChannelFactory channelFactory) {
         super(marshallerRegister, channelFactory);
     }
 
     @Override
     protected ServerCallHandler buildServerCallHandler(Method method, Object target) {
-        return ServerCalls.asyncUnaryCall((request, responseObserver) -> {
-            try {
-                Object response = invokeServer(target, method, transformsServerRequest(request));
-                responseObserver.onNext(transformServerResponse(response));
-            } catch (Throwable error) {
-                error.printStackTrace();
-                responseObserver.onError(error);
-            } finally {
-                responseObserver.onCompleted();
-            }
-        });
+        return ServerCalls.asyncUnaryCall(callMethod(target, method));
     }
 
-    protected Object invokeServer(Object target,Method method,Object request){
-        return invoke(target, method, transformsServerRequest(request));
+    protected ServerCalls.UnaryMethod callMethod(Object target, Method method) {
+        return new DefaultUnaryMethod(target, method);
     }
 
     @Override
     protected ClientCaller buildClientCaller(ServiceDefinition definition, Method method) {
-        ManagedChannel channel = channelFactory.getManagedChannel(definition.getAppName(), definition.getPort());
+        Channel channel = channelFactory.getChannel(definition.getHostname(), definition.getPort());
         MethodDescriptor md = parseDescriptor(definition, method);
-        return args -> {
-            Object response = ClientCalls.blockingUnaryCall(channel, md, CallOptions.DEFAULT, transformsClientRequest(args));
-            return transformsClientResponse(response);
-        };
+        return clientCaller(channel, md);
+    }
+
+    protected ClientCaller clientCaller(Channel channel, MethodDescriptor md) {
+        return new DefaultClientCaller(channel, md);
     }
 
     @Override
@@ -57,23 +50,54 @@ public abstract class UnaryMethodParser extends BaseMethodParser {
         return MethodDescriptor.MethodType.UNARY;
     }
 
-    protected Object transformsClientRequest(Object[] args) {
-        if (args == null || args.length == 0) {
-            throw new IllegalArgumentException("请求参数不能为空或者null");
+    @RequiredArgsConstructor
+    protected static class DefaultClientCaller extends Invoker implements ClientCaller {
+        private final Channel channel;
+        private final MethodDescriptor md;
+
+        @Override
+        public Object call(Object[] args) {
+            Object response = ClientCalls.blockingUnaryCall(channel, md, CallOptions.DEFAULT, transformRequest(args));
+            return transformResponse(response);
         }
-        return args[0];
+
+        protected Object transformRequest(Object[] args) {
+            return args[0];
+        }
+
+        protected Object transformResponse(Object response) {
+            return response;
+        }
+
     }
 
-    protected Object transformsClientResponse(Object response) {
-        return response;
-    }
+    @RequiredArgsConstructor
+    protected static class DefaultUnaryMethod extends Invoker implements ServerCalls.UnaryMethod {
 
-    protected Object transformsServerRequest(Object request) {
-        return request;
-    }
+        private final Object target;
+        private final Method method;
 
-    protected Object transformServerResponse(Object response) {
-        return response;
+        @Override
+        public void invoke(Object request, StreamObserver responseObserver) {
+            try {
+                Object response = invoke(target, method, transformRequest(request));
+                responseObserver.onNext(transformResponse(response));
+            } catch (Throwable error) {
+                log.error("invoke server error", error);
+                responseObserver.onError(error);
+            } finally {
+                responseObserver.onCompleted();
+            }
+        }
+
+        protected Object transformRequest(Object request) {
+            return request;
+        }
+
+        protected Object transformResponse(Object response) {
+            return response;
+        }
+
     }
 
 }

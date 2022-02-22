@@ -16,7 +16,11 @@ public @interface XRPC {
     /**
      * 微服务的应用名称
      */
-    String appName();
+    String hostname();
+    /**
+     * 服务端口号
+     */
+    int port() default 8001;
     /**
      * 当前服务暴露的名称
      */
@@ -25,11 +29,6 @@ public @interface XRPC {
      * 当前服务所属的包名
      */
     String servicePackage() default "";
-    /**
-     * 服务端口号
-     */
-    int port() default 8001;
-
     /**
      * 版本号
      */

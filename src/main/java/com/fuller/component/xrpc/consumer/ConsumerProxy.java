@@ -1,9 +1,11 @@
 package com.fuller.component.xrpc.consumer;
 
+import com.fuller.component.xrpc.util.ClassLoaderUtil;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Map;
 
 /**
@@ -13,7 +15,7 @@ import java.util.Map;
  * @author Allen Huang on 2022/2/11
  */
 @RequiredArgsConstructor
-public class ConsumerInvoker implements InvocationHandler {
+public class ConsumerProxy implements InvocationHandler {
 
     private final Map<Method, ClientCaller> callerMap;
 
@@ -30,6 +32,12 @@ public class ConsumerInvoker implements InvocationHandler {
         }
         //TODO: 这里应该要抛出异常
         return null;
+    }
+
+    public static <T> T create(Class<T> type, Map<Method, ClientCaller> stubs) {
+        ClassLoader classLoader = ClassLoaderUtil.getContextClassLoader();
+        ConsumerProxy proxy = new ConsumerProxy(stubs);
+        return (T) Proxy.newProxyInstance(classLoader, new Class<?>[]{type}, proxy);
     }
 
 }

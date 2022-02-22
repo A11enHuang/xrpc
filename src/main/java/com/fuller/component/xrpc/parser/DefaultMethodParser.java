@@ -2,7 +2,7 @@ package com.fuller.component.xrpc.parser;
 
 import com.fuller.component.xrpc.MarshallerRegister;
 import com.fuller.component.xrpc.ServiceDefinition;
-import com.fuller.component.xrpc.channel.ManagedChannelFactory;
+import com.fuller.component.xrpc.consumer.ConsumerChannelFactory;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -18,7 +18,7 @@ import java.lang.reflect.Type;
 public class DefaultMethodParser extends UnaryMethodParser {
 
     public DefaultMethodParser(MarshallerRegister marshallerRegister,
-                               ManagedChannelFactory channelFactory) {
+                               ConsumerChannelFactory channelFactory) {
         super(marshallerRegister, channelFactory);
     }
 

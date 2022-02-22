@@ -1,10 +1,11 @@
 package com.fuller.component.xrpc.test;
 
-import com.fuller.component.xrpc.MarshallerRegister;
 import com.fuller.component.xrpc.MethodRegister;
 import com.fuller.component.xrpc.ServiceDefinition;
 import com.fuller.component.xrpc.annotation.XRPC;
 import com.fuller.component.xrpc.consumer.ClientCaller;
+import com.fuller.component.xrpc.consumer.ConsumerProxy;
+import com.fuller.component.xrpc.util.ClassLoaderUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -13,6 +14,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Allen Huang on 2022/2/11
@@ -34,15 +38,21 @@ public class ConsumerRegisterTest {
     @Test
     public void clientTest() {
         Class<DemoService> target = DemoService.class;
-        Method method = target.getDeclaredMethods()[0];
         ServiceDefinition sd = new ServiceDefinition();
         sd.setType(target);
         sd.setServiceName(target.getSimpleName());
-        sd.setAppName("127.0.0.1");
+        sd.setHostname("127.0.0.1");
         sd.setPort(8001);
-        ClientCaller clientCaller = methodRegister.getClientCaller(sd, method);
-        Object response = clientCaller.call(new Object[]{"allen"});
-        System.out.println(response);
+
+        Map<Method,ClientCaller> map = new HashMap<>();
+        for (Method method : target.getDeclaredMethods()) {
+            map.put(method,methodRegister.getClientCaller(sd, method));
+        }
+        ClassLoader classLoader = ClassLoaderUtil.getContextClassLoader();
+        DemoService service = (DemoService)Proxy.newProxyInstance(classLoader, new Class<?>[]{target}, new ConsumerProxy(map));
+//        String response = service.hello("allen");
+//        System.out.println(response);
+        service.run();
     }
 
     @Configuration
@@ -56,7 +66,7 @@ public class ConsumerRegisterTest {
 
     }
 
-    @XRPC(appName = "service-demo.microservice")
+    @XRPC(hostname = "service-demo.microservice")
     public interface DemoService {
 
         void run();

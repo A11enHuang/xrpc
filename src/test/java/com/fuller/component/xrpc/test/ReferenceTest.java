@@ -16,11 +16,11 @@ import org.springframework.context.annotation.Configuration;
 public class ReferenceTest {
 
     @Autowired
-    private ReferenceService referenceService;
+    private DemoService demoService;
 
     @Test
     public void testIn(){
-        referenceService.printService();
+        demoService.printService();
     }
 
     @Configuration
@@ -28,24 +28,38 @@ public class ReferenceTest {
     public static class Config {
 
         @Bean
-        public ReferenceService referenceService(){
-            return new ReferenceService();
+        public DemoService referenceService(){
+            return new DemoService();
+        }
+
+        @Bean
+        public HelloService helloService(){
+            return new HelloServiceImpl();
         }
 
     }
 
-    @XRPC(appName = "HelloService")
+    @XRPC(hostname = "HelloService")
     public interface HelloService {
-        String sayHello();
+        String sayHello(String say);
     }
 
-    public static class ReferenceService {
+    public static class HelloServiceImpl implements HelloService{
 
-        @XRPCReference
+        @Override
+        public String sayHello(String say) {
+            System.out.println(say + " say hello.");
+            return "hello world";
+        }
+    }
+
+    public static class DemoService {
+
+        @XRPCReference(hostname = "localhost")
         private HelloService helloService;
 
         public void printService(){
-            System.out.println(helloService);
+            helloService.sayHello("allen");
         }
 
     }

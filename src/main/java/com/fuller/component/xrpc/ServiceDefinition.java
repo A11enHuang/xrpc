@@ -26,7 +26,7 @@ public class ServiceDefinition {
     /**
      * 服务的应用名
      */
-    private String appName;
+    private String hostname;
 
     /**
      * 当前资源名
@@ -41,7 +41,7 @@ public class ServiceDefinition {
     public static ServiceDefinition build(Class<?> type, Environment environment) {
         XRPC xrpc = type.getAnnotation(XRPC.class);
         ServiceDefinition serviceDefinition = new ServiceDefinition();
-        serviceDefinition.setAppName(resolvePlaceholders(xrpc.appName(), environment));
+        serviceDefinition.setHostname(resolvePlaceholders(xrpc.hostname(), environment));
         serviceDefinition.setPort(xrpc.port());
         serviceDefinition.setVersion(resolvePlaceholders(xrpc.version(), environment));
         String serviceName = Optional.ofNullable(xrpc.serviceName())

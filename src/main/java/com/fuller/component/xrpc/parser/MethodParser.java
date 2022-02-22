@@ -34,6 +34,13 @@ public interface MethodParser extends Ordered {
      */
     ServerCallHandler parseServerCallHandler(Method method, Object target);
 
+    /**
+     * 解析此方法的客户端调用者对象
+     *
+     * @param definition 服务定义
+     * @param method     目标方法
+     * @return 返回客户端存根对象
+     */
     ClientCaller parseClientCaller(ServiceDefinition definition, Method method);
 
     @Override

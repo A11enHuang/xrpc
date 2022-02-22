@@ -2,7 +2,13 @@ package com.fuller.component.xrpc.parser;
 
 import com.fuller.component.xrpc.MarshallerRegister;
 import com.fuller.component.xrpc.ServiceDefinition;
-import com.fuller.component.xrpc.channel.ManagedChannelFactory;
+import com.fuller.component.xrpc.consumer.ConsumerChannelFactory;
+import com.fuller.component.xrpc.consumer.ClientCaller;
+import io.grpc.Channel;
+import io.grpc.MethodDescriptor;
+import io.grpc.stub.ServerCalls;
+import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Constructor;
@@ -12,11 +18,11 @@ import java.lang.reflect.Type;
 /**
  * @author Allen Huang on 2022/2/17
  */
+@Slf4j
 @Component
 public class VoidMethodParser extends UnaryMethodParser {
 
     private static Void INSTANCE;
-    private static final Object[] EMPTY = new Object[0];
 
     static {
         try {
@@ -29,7 +35,7 @@ public class VoidMethodParser extends UnaryMethodParser {
     }
 
     public VoidMethodParser(MarshallerRegister marshallerRegister,
-                            ManagedChannelFactory channelFactory) {
+                            ConsumerChannelFactory channelFactory) {
         super(marshallerRegister, channelFactory);
     }
 
@@ -45,32 +51,36 @@ public class VoidMethodParser extends UnaryMethodParser {
     }
 
     @Override
-    protected Object invokeServer(Object target, Method method, Object request) {
-        return invoke(target, method);
+    protected ServerCalls.UnaryMethod callMethod(Object target, Method method) {
+        return new DefaultUnaryMethod(target, method) {
+            @Override
+            public void invoke(Object request, StreamObserver responseObserver) {
+                try {
+                    invoke(target, method);
+                    responseObserver.onNext(INSTANCE);
+                } catch (Throwable error) {
+                    log.error("invoke server error", error);
+                    responseObserver.onError(error);
+                } finally {
+                    responseObserver.onCompleted();
+                }
+            }
+        };
     }
 
     @Override
-    protected Object transformsClientRequest(Object[] args) {
-        return INSTANCE;
+    protected ClientCaller clientCaller(Channel channel, MethodDescriptor md) {
+        return new DefaultClientCaller(channel, md) {
+            @Override
+            protected Object transformResponse(Object response) {
+                return null;
+            }
+
+            @Override
+            protected Object transformRequest(Object[] args) {
+                return INSTANCE;
+            }
+        };
     }
 
-    @Override
-    protected Object transformServerResponse(Object response) {
-        return null;
-    }
-
-    @Override
-    protected Object transformsServerRequest(Object request) {
-        return INSTANCE;
-    }
-
-    @Override
-    protected Object transformsClientResponse(Object response) {
-        return null;
-    }
-
-    @Override
-    public int getOrder() {
-        return -100;
-    }
 }

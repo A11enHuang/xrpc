@@ -1,10 +1,11 @@
 package com.fuller.component.xrpc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fuller.component.xrpc.channel.ManagedChannelFactory;
-import com.fuller.component.xrpc.channel.NettyManagedChannelFactory;
-import com.fuller.component.xrpc.checker.DefaultServiceChecker;
-import com.fuller.component.xrpc.checker.ServiceChecker;
+import com.fuller.component.xrpc.consumer.ConsumerChannelFactory;
+import com.fuller.component.xrpc.consumer.NettyConsumerChannelFactory;
+import com.fuller.component.xrpc.consumer.ConsumerContext;
+import com.fuller.component.xrpc.consumer.ConsumerInject;
+import com.fuller.component.xrpc.consumer.DefaultConsumerContext;
 import com.fuller.component.xrpc.marshaller.JacksonMarshallerFactory;
 import com.fuller.component.xrpc.marshaller.MarshallerFactory;
 import io.grpc.netty.NettyChannelBuilder;
@@ -23,14 +24,8 @@ public class XRPCAutoConfiguration {
 
     @Bean
     @ConditionalOnClass(NettyChannelBuilder.class)
-    public ManagedChannelFactory nettyManagedChannelFactory() {
-        return new NettyManagedChannelFactory();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(ServiceChecker.class)
-    public ServiceChecker defaultServiceChecker() {
-        return new DefaultServiceChecker();
+    public ConsumerChannelFactory nettyManagedChannelFactory() {
+        return new NettyConsumerChannelFactory();
     }
 
     @Bean
@@ -43,6 +38,17 @@ public class XRPCAutoConfiguration {
     @ConditionalOnMissingBean(MarshallerRegister.class)
     public MarshallerRegister marshallerRegister(MarshallerFactory marshallerFactory) {
         return new DefaultMarshallerRegister(marshallerFactory);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ConsumerContext.class)
+    public ConsumerContext defaultConsumerProxyRegister(MethodRegister register) {
+        return new DefaultConsumerContext(register);
+    }
+
+    @Bean
+    public ConsumerInject defaultXRPCReferenceInject(ConsumerContext register) {
+        return new ConsumerInject(register);
     }
 
 }
