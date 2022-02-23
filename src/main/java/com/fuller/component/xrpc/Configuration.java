@@ -74,7 +74,6 @@ public class Configuration implements MethodRegister, ServiceRegister {
         throw new RpcException("无法为目标方法创建客户端存根." + definition.getType().getName() + "#" + method.getName());
     }
 
-
     @Override
     public ServiceDescriptor getServiceDescriptor(ServiceDefinition definition) {
         Class<?> type = definition.getType();
@@ -94,5 +93,4 @@ public class Configuration implements MethodRegister, ServiceRegister {
         }
         return descriptor;
     }
-
 }

@@ -1,6 +1,5 @@
 package com.fuller.component.xrpc;
 
-import com.fuller.component.xrpc.ServiceDefinition;
 import io.grpc.ServiceDescriptor;
 
 /**

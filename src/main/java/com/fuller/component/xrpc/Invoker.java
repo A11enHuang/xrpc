@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * 利用MethodHandler执行目标方法
+ *
  * @author Allen Huang on 2022/2/17
  */
 public class Invoker {

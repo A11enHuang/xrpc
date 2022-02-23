@@ -1,5 +1,6 @@
 package com.fuller.component.xrpc.consumer;
 
+import com.fuller.component.xrpc.exception.RpcException;
 import com.fuller.component.xrpc.util.ClassLoaderUtil;
 import lombok.RequiredArgsConstructor;
 
@@ -30,12 +31,11 @@ public class ConsumerProxy implements InvocationHandler {
         if (Object.class.equals(declaringClass)) {
             return method.invoke(this, args);
         }
-        //TODO: 这里应该要抛出异常
-        return null;
+        throw new RpcException("调用RPC异常，未匹配到对应的方法.");
     }
 
     public static <T> T create(Class<T> type, Map<Method, ClientCaller> stubs) {
-        ClassLoader classLoader = ClassLoaderUtil.getContextClassLoader();
+        ClassLoader classLoader = ClassLoaderUtil.getClassLoader();
         ConsumerProxy proxy = new ConsumerProxy(stubs);
         return (T) Proxy.newProxyInstance(classLoader, new Class<?>[]{type}, proxy);
     }
