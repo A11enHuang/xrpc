@@ -12,6 +12,10 @@ public interface MethodParameterParser extends Ordered {
 
     Type parse(Method method);
 
+    Object parseValue(Method method, Object[] args);
+
+    boolean isSupport(Method method);
+
     @Override
     default int getOrder() {
         return 0;

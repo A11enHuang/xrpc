@@ -14,12 +14,20 @@ public class VoidMethodParameterParser implements MethodParameterParser {
 
     @Override
     public Type parse(Method method) {
-        Parameter[] parameters = method.getParameters();
-        if (parameters.length == 0) {
-            return Void.TYPE;
-        }
+        return Void.TYPE;
+    }
+
+    @Override
+    public Object parseValue(Method method, Object[] args) {
         return null;
     }
+
+    @Override
+    public boolean isSupport(Method method) {
+        Parameter[] parameters = method.getParameters();
+        return parameters.length == 0;
+    }
+
 
     @Override
     public int getOrder() {

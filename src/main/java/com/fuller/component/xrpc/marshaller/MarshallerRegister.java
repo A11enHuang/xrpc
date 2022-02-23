@@ -1,4 +1,4 @@
-package com.fuller.component.xrpc;
+package com.fuller.component.xrpc.marshaller;
 
 import io.grpc.MethodDescriptor;
 

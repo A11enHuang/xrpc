@@ -10,16 +10,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author Allen Huang on 2022/2/11
+ * @author Allen Huang on 2022/2/23
  */
 @Slf4j
 public class NettyConsumerChannelFactory implements ConsumerChannelFactory, DisposableBean {
-
     private final Map<String, ManagedChannel> channelMap = new ConcurrentHashMap<>();
 
     @Override
     public Channel getChannel(String host, int port) {
         String key = host + ":" + port;
+        log.info("[gRPC][client]新建Channel成功.hostname:{},port:{}", host, port);
         return channelMap.computeIfAbsent(key, k ->
                 NettyChannelBuilder.forAddress(host, port)
                         .usePlaintext()

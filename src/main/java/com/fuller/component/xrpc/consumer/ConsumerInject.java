@@ -1,5 +1,6 @@
 package com.fuller.component.xrpc.consumer;
 
+import com.fuller.component.xrpc.ServerRegister;
 import com.fuller.component.xrpc.ServiceDefinition;
 import com.fuller.component.xrpc.annotation.XRPC;
 import com.fuller.component.xrpc.annotation.XRPCReference;
@@ -8,20 +9,18 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 
 /**
- * @author Allen Huang on 2022/2/22
+ * @author Allen Huang on 2022/2/23
  */
 @RequiredArgsConstructor
-public class ConsumerInject implements BeanPostProcessor, EnvironmentAware {
+public class ConsumerInject implements BeanPostProcessor {
 
-    private final ConsumerContext proxyRegister;
-    private Environment environment;
+    private final ConsumerContext consumerContext;
+    private final ServerRegister serverRegister;
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -47,14 +46,14 @@ public class ConsumerInject implements BeanPostProcessor, EnvironmentAware {
         if (xrpc == null) {
             throw new BeanCreationException("被@XRPCReference标记的属性接口必须包含@XRPC注解.错误的字段定义:" + type.getName() + "#" + field.getName());
         }
-        ServiceDefinition serviceDefinition = ServiceDefinition.build(reference, environment);
+        ServiceDefinition definition = serverRegister.parseServiceDefinition(reference);
         if (StringUtils.hasText(annotation.hostname())) {
-            serviceDefinition.setHostname(annotation.hostname());
+            definition.setHostname(annotation.hostname());
         }
         if (annotation.port() > 0) {
-            serviceDefinition.setPort(annotation.port());
+            definition.setPort(annotation.port());
         }
-        Object instance = proxyRegister.getProxy(serviceDefinition);
+        Object instance = consumerContext.getProxy(definition);
         try {
             boolean canAccess = field.canAccess(bean);
             field.setAccessible(true);
@@ -65,8 +64,4 @@ public class ConsumerInject implements BeanPostProcessor, EnvironmentAware {
         }
     }
 
-    @Override
-    public void setEnvironment(Environment environment) {
-        this.environment = environment;
-    }
 }

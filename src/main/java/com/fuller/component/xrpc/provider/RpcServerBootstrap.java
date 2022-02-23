@@ -1,8 +1,8 @@
 package com.fuller.component.xrpc.provider;
 
 import com.fuller.component.xrpc.MethodRegister;
+import com.fuller.component.xrpc.ServerRegister;
 import com.fuller.component.xrpc.ServiceDefinition;
-import com.fuller.component.xrpc.ServiceRegister;
 import com.fuller.component.xrpc.annotation.XRPC;
 import io.grpc.*;
 import lombok.extern.slf4j.Slf4j;
@@ -12,47 +12,36 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
- * @author Allen Huang on 2022/2/11
+ * @author Allen Huang on 2022/2/23
  */
 @Slf4j
 @Component
 @SuppressWarnings("rawtypes")
-public class ServiceExport implements CommandLineRunner, ApplicationContextAware, EnvironmentAware, DisposableBean {
+public class RpcServerBootstrap implements CommandLineRunner, ApplicationContextAware, DisposableBean {
 
     private ApplicationContext applicationContext;
 
-    private MethodRegister methodRegister;
-
-    private ServiceRegister serviceRegister;
-
-    private Environment environment;
-
     private Server grpcServer;
 
-    @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-        this.methodRegister = applicationContext.getBean(MethodRegister.class);
-        this.serviceRegister = applicationContext.getBean(ServiceRegister.class);
-    }
+    private ServerRegister serverRegister;
+
+    private MethodRegister methodRegister;
 
     @Override
     public void run(String... args) throws Exception {
+        log.info("[gRPC][server]正在启动服务端程序...");
         ServerBuilder<?> serverBuilder = ServerBuilder.forPort(8001);
         Map<String, Object> beans = applicationContext.getBeansWithAnnotation(XRPC.class);
         beans.forEach((name, bean) -> this.bindService(bean, serverBuilder));
         this.grpcServer = serverBuilder.build();
         this.grpcServer.start();
-        log.info("[gRPC][Provider]Server启动完成.监听端口号:8001");
+        log.info("[gRPC][server]服务端启动完成.监听端口号:8001");
     }
 
     private void bindService(Object bean, ServerBuilder<?> serverBuilder) {
@@ -60,24 +49,19 @@ public class ServiceExport implements CommandLineRunner, ApplicationContextAware
         for (Class<?> anInterface : target.getInterfaces()) {
             if (anInterface.isAnnotationPresent(XRPC.class)) {
                 int count = 0;
-                ServiceDefinition serviceDefinition = ServiceDefinition.build(anInterface, environment);
-                ServiceDescriptor serviceDescriptor = serviceRegister.getServiceDescriptor(serviceDefinition);
+                ServiceDefinition definition = serverRegister.parseServiceDefinition(anInterface);
+                ServiceDescriptor serviceDescriptor = serverRegister.parseServiceDescriptor(anInterface);
                 ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(serviceDescriptor);
                 for (Method method : anInterface.getDeclaredMethods()) {
-                    MethodDescriptor md = methodRegister.getMethodDescriptor(serviceDefinition, method);
-                    ServerCallHandler handler = methodRegister.getServerCallHandler(serviceDefinition, method, bean);
+                    MethodDescriptor md = methodRegister.parseMethodDescriptor(definition, method);
+                    ServerCallHandler handler = methodRegister.parseServerCallHandler(bean,method);
                     builder.addMethod(md, handler);
                     count++;
                 }
                 serverBuilder.addService(builder.build());
-                log.info("[gRPC][Provider]{}成功暴露{}个gRPC方法.", target.getName(), count);
+                log.info("[gRPC][server]识别到RPC服务:{},已暴露{}个RPC方法.", anInterface.getName(), count);
             }
         }
-    }
-
-    @Override
-    public void setEnvironment(@NonNull Environment environment) {
-        this.environment = environment;
     }
 
     @Override
@@ -86,5 +70,13 @@ public class ServiceExport implements CommandLineRunner, ApplicationContextAware
             grpcServer.shutdown();
         }
     }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+        this.methodRegister = applicationContext.getBean(MethodRegister.class);
+        this.serverRegister = applicationContext.getBean(ServerRegister.class);
+    }
+
 
 }

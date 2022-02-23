@@ -8,7 +8,7 @@ import java.lang.reflect.Type;
  */
 public class VoidTypeConvert implements TypeConvert<Void> {
 
-    private static Void INSTANCE;
+    public static Void INSTANCE;
 
     static {
         try {

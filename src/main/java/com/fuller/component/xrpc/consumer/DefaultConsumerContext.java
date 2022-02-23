@@ -10,43 +10,37 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Allen Huang on 2022/2/22
+ * @author Allen Huang on 2022/2/23
  */
 @Slf4j
 @RequiredArgsConstructor
 public class DefaultConsumerContext implements ConsumerContext {
 
-    private final MethodRegister methodRegister;
+    private final Map<Class<?>, Object> proxyMap = new HashMap<>();
 
-    private final Map<Class<?>, Object> instanceMap = new HashMap<>();
+    protected final MethodRegister methodRegister;
 
     @Override
-    public Object getProxy(ServiceDefinition definition) {
-        Class<?> type = definition.getType();
-        Object instance = instanceMap.get(type);
-        if (instance == null) {
-            synchronized (instanceMap) {
-                instance = instanceMap.get(type);
-                if (instance == null) {
-                    Map<Method, ClientCaller> stubs = buildStub(definition);
-                    instance = ConsumerProxy.create(type, stubs);
-                    log.info("[gRPC][Consumer]{}成功注册{}个RPC方法", type.getName(), stubs.size());
-                    instanceMap.put(type, instance);
-                }
+    public <T> T getProxy(ServiceDefinition definition) {
+        Class<?> target = definition.getType();
+        Object proxy = proxyMap.get(target);
+        if (proxy == null) {
+            synchronized (proxyMap) {
+                proxy = proxyMap.computeIfAbsent(target, k -> getProxyInstance(definition));
             }
         }
-        return instance;
+        return (T) proxy;
     }
 
-    protected Map<Method, ClientCaller> buildStub(ServiceDefinition definition) {
-        Class<?> type = definition.getType();
-        Map<Method, ClientCaller> map = new HashMap<>();
-        for (Class<?> parent = type; parent != null; parent = parent.getSuperclass()) {
-            for (Method method : parent.getDeclaredMethods()) {
-                map.put(method, methodRegister.getClientCaller(definition, method));
-            }
+    private <T> T getProxyInstance(ServiceDefinition definition) {
+        Class<?> target = definition.getType();
+        Map<Method, ConsumerCaller> stubs = new HashMap<>();
+        for (Method method : target.getDeclaredMethods()) {
+            ConsumerCaller caller = methodRegister.parseConsumerCaller(definition, method);
+            stubs.put(method, caller);
         }
-        return map;
+        log.info("[gRPC][Consumer]{}成功注册{}个RPC方法", target.getName(), stubs.size());
+        return (T) ConsumerProxy.create(target, stubs);
     }
 
 }

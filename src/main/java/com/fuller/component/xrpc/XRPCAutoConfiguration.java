@@ -1,14 +1,12 @@
 package com.fuller.component.xrpc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fuller.component.xrpc.consumer.ConsumerChannelFactory;
-import com.fuller.component.xrpc.consumer.NettyConsumerChannelFactory;
-import com.fuller.component.xrpc.consumer.ConsumerContext;
-import com.fuller.component.xrpc.consumer.ConsumerInject;
-import com.fuller.component.xrpc.consumer.DefaultConsumerContext;
+import com.fuller.component.xrpc.consumer.*;
+import com.fuller.component.xrpc.marshaller.DefaultMarshallerRegister;
 import com.fuller.component.xrpc.marshaller.JacksonMarshallerFactory;
 import com.fuller.component.xrpc.marshaller.MarshallerFactory;
-import io.grpc.netty.NettyChannelBuilder;
+import com.fuller.component.xrpc.marshaller.MarshallerRegister;
+import io.netty.util.NettyRuntime;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -23,8 +21,9 @@ import org.springframework.context.annotation.Configuration;
 public class XRPCAutoConfiguration {
 
     @Bean
-    @ConditionalOnClass(NettyChannelBuilder.class)
-    public ConsumerChannelFactory nettyManagedChannelFactory() {
+    @ConditionalOnClass(NettyRuntime.class)
+    @ConditionalOnMissingBean(ConsumerChannelFactory.class)
+    public ConsumerChannelFactory defaultConsumerChannelFactory() {
         return new NettyConsumerChannelFactory();
     }
 
@@ -47,8 +46,8 @@ public class XRPCAutoConfiguration {
     }
 
     @Bean
-    public ConsumerInject defaultXRPCReferenceInject(ConsumerContext register) {
-        return new ConsumerInject(register);
+    public ConsumerInject defaultXRPCReferenceInject(ConsumerContext context, ServerRegister serverRegister) {
+        return new ConsumerInject(context, serverRegister);
     }
 
 }

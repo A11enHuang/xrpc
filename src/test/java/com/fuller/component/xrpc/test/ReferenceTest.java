@@ -1,6 +1,5 @@
 package com.fuller.component.xrpc.test;
 
-import com.fuller.component.xrpc.annotation.XRPC;
 import com.fuller.component.xrpc.annotation.XRPCReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,17 +9,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Allen Huang on 2022/2/16
+ * @author Allen Huang on 2022/2/23
  */
 @SpringBootTest(classes = ReferenceTest.Config.class)
 public class ReferenceTest {
 
     @Autowired
-    private DemoService demoService;
+    private ReferenceService referenceService;
 
     @Test
-    public void testIn(){
-        demoService.printService();
+    public void injectTest() {
+        referenceService.test();
     }
 
     @Configuration
@@ -28,41 +27,24 @@ public class ReferenceTest {
     public static class Config {
 
         @Bean
-        public DemoService referenceService(){
-            return new DemoService();
-        }
-
-        @Bean
-        public HelloService helloService(){
-            return new HelloServiceImpl();
+        public ReferenceService referenceService() {
+            return new ReferenceService();
         }
 
     }
 
-    @XRPC(hostname = "HelloService")
-    public interface HelloService {
-        String sayHello(String say);
-    }
+    public static class ReferenceService {
 
-    public static class HelloServiceImpl implements HelloService{
+        @XRPCReference
+        private XRPCTest.DemoService demoService;
 
-        @Override
-        public String sayHello(String say) {
-            System.out.println(say + " say hello.");
-            return "hello world";
-        }
-    }
-
-    public static class DemoService {
-
-        @XRPCReference(hostname = "localhost")
-        private HelloService helloService;
-
-        public void printService(){
-            helloService.sayHello("allen");
+        public void test() {
+            System.out.println(demoService.normal("Java"));
+            demoService.onlyParameter("Java");
+            System.out.println(demoService.onlyReturn());
+            demoService.allVoid();
         }
 
     }
-
 
 }
