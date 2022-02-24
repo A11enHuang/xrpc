@@ -18,10 +18,11 @@ public class DefaultMarshallerRegister implements MarshallerRegister {
 
     public DefaultMarshallerRegister(MarshallerFactory defaultFactory) {
         this.defaultFactory = defaultFactory;
-        //这里可以初始化一些默认的序列化
-        this.registerMarshaller(String.class, new StringMarshaller());
-        this.registerMarshaller(void.class, new VoidMarshaller());
-        this.registerMarshaller(Void.class, new VoidMarshaller());
+    }
+
+    @Override
+    public boolean existsMarshaller(Type type) {
+        return marshallerMap.containsKey(type);
     }
 
     @Override

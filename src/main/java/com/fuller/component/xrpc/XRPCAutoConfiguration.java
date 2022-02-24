@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 /**
  * @author Allen Huang on 2022/2/11
  */
@@ -35,8 +37,13 @@ public class XRPCAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MarshallerRegister.class)
-    public MarshallerRegister marshallerRegister(MarshallerFactory marshallerFactory) {
-        return new DefaultMarshallerRegister(marshallerFactory);
+    public MarshallerRegister marshallerRegister(MarshallerFactory marshallerFactory,
+                                                 List<MarshallerCustomizer> customizers) {
+        DefaultMarshallerRegister register = new DefaultMarshallerRegister(marshallerFactory);
+        for (MarshallerCustomizer customizer : customizers) {
+            customizer.customize(register);
+        }
+        return register;
     }
 
     @Bean
@@ -46,7 +53,8 @@ public class XRPCAutoConfiguration {
     }
 
     @Bean
-    public ConsumerInject defaultXRPCReferenceInject(ConsumerContext context, ServerRegister serverRegister) {
+    public ConsumerInject defaultXRPCReferenceInject(ConsumerContext context,
+                                                     ServerRegister serverRegister) {
         return new ConsumerInject(context, serverRegister);
     }
 

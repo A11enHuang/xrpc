@@ -5,7 +5,6 @@ import com.fuller.component.xrpc.consumer.ConsumerChannelFactory;
 import com.fuller.component.xrpc.consumer.UnaryConsumerCaller;
 import com.fuller.component.xrpc.convert.DefaultTypeConvert;
 import com.fuller.component.xrpc.convert.TypeConvert;
-import com.fuller.component.xrpc.convert.VoidTypeConvert;
 import com.fuller.component.xrpc.marshaller.MarshallerRegister;
 import com.fuller.component.xrpc.parser.MethodParameterParser;
 import com.fuller.component.xrpc.provider.ServerAsyncUnaryCallMethod;
@@ -29,7 +28,7 @@ import java.util.Map;
  */
 @Component
 @SuppressWarnings("rawtypes")
-public class Configuration implements TypeConvertRegister, ServerRegister, MethodRegister, EnvironmentAware {
+public class XRPConfiguration implements TypeConvertRegister, ServerRegister, MethodRegister, EnvironmentAware {
 
     private final Map<Method, Type> methodParameterType = new HashMap<>();
     private final Map<Type, TypeConvert> typeConvertMap = new HashMap<>();
@@ -43,13 +42,14 @@ public class Configuration implements TypeConvertRegister, ServerRegister, Metho
 
     private Environment environment;
 
-    public Configuration(MarshallerRegister marshallerRegister,
-                         ConsumerChannelFactory channelFactory,
-                         List<MethodParameterParser> parameterParsers) {
+    public XRPConfiguration(MarshallerRegister marshallerRegister,
+                            ConsumerChannelFactory channelFactory,
+                            List<MethodParameterParser> parameterParsers,
+                            List<TypeConvertCustomizer> convertCustomizers) {
         this.marshallerRegister = marshallerRegister;
         this.parameterParsers = parameterParsers;
         this.channelFactory = channelFactory;
-        typeConvertMap.put(Void.TYPE, new VoidTypeConvert());
+        convertCustomizers.forEach(customizer -> customizer.customize(this));
     }
 
     @Override
@@ -123,6 +123,7 @@ public class Configuration implements TypeConvertRegister, ServerRegister, Metho
                 caller = consumerCallerMap.get(method);
                 if (caller == null) {
                     caller = buildConsumerCaller(definition, method);
+                    consumerCallerMap.put(method, caller);
                 }
             }
         }
@@ -171,6 +172,11 @@ public class Configuration implements TypeConvertRegister, ServerRegister, Metho
 
 
     @Override
+    public boolean existsConvert(Type type) {
+        return typeConvertMap.containsKey(type);
+    }
+
+    @Override
     public TypeConvert getConvert(Type type) {
         TypeConvert convert = typeConvertMap.get(type);
         if (convert == null) {
@@ -185,6 +191,18 @@ public class Configuration implements TypeConvertRegister, ServerRegister, Metho
         return convert;
     }
 
+    @Override
+    public void registerConvert(Type type, TypeConvert convert) {
+        synchronized (typeConvertMap) {
+            typeConvertMap.put(type, convert);
+        }
+    }
+
+    @Override
+    public ServiceDefinition parseServiceDefinition(Class<?> type) {
+        return ServiceDefinition.build(type, environment);
+    }
+
     protected MethodDescriptor.MethodType matchMethodType(TypeConvert requestConvert, TypeConvert responseConvert) {
         //根据请求参数和响应参数判断请求的类型：
         //当请求为流模式时，如果响应为流模式，则方法是BIDI_STREAMING模式，否则方法是CLIENT_STREAMING模式
@@ -194,11 +212,6 @@ public class Configuration implements TypeConvertRegister, ServerRegister, Metho
         } else {
             return responseConvert.isStream() ? MethodDescriptor.MethodType.SERVER_STREAMING : MethodDescriptor.MethodType.UNARY;
         }
-    }
-
-    @Override
-    public ServiceDefinition parseServiceDefinition(Class<?> type) {
-        return ServiceDefinition.build(type, environment);
     }
 
     @Override

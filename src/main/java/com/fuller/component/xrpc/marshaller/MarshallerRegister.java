@@ -13,8 +13,16 @@ import java.lang.reflect.Type;
 public interface MarshallerRegister {
 
     /**
+     * 判断某个类型是否已经含有序列化器
+     *
+     * @param type 目标类型
+     * @return 如果存在，则返回true
+     */
+    boolean existsMarshaller(Type type);
+
+    /**
      * 注册一个序列化器。此方法是线程安全的。
-     * 如果该类型已经存在相同的序列化器，则注册将会失效。
+     * 如果该类型已经存在相同的序列化器，此注册操作将会覆盖原本已经注册的序列化器。
      *
      * @param type       序列化器对应的类型
      * @param marshaller 序列化器实例
