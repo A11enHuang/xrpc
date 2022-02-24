@@ -19,11 +19,12 @@ public class NettyConsumerChannelFactory implements ConsumerChannelFactory, Disp
     @Override
     public Channel getChannel(String host, int port) {
         String key = host + ":" + port;
-        log.info("[gRPC][client]新建Channel成功.hostname:{},port:{}", host, port);
-        return channelMap.computeIfAbsent(key, k ->
-                NettyChannelBuilder.forAddress(host, port)
-                        .usePlaintext()
-                        .build());
+        return channelMap.computeIfAbsent(key, k -> {
+            log.info("[gRPC][client]新建Channel成功.hostname:{},port:{}", host, port);
+            return NettyChannelBuilder.forAddress(host, port)
+                    .usePlaintext()
+                    .build();
+        });
     }
 
     @Override

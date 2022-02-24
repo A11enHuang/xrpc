@@ -40,10 +40,7 @@ public class ServerAsyncUnaryCallMethod implements ServerCalls.UnaryMethod, Serv
         try {
             Object obj = requestConvert.convertFrom(request);
             Object response = handler.handle(target, method, obj);
-            Object result = null;
-            if (response != null) {
-                result = responseConvert.convertFrom(response);
-            }
+            Object result = responseConvert.convertTo(response);
             responseObserver.onNext(result);
         } catch (Exception e) {
             log.error("gRPC服务端执行出错", e);

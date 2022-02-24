@@ -17,9 +17,6 @@ public class DefaultMarshallerCustomizer implements MarshallerCustomizer {
         if (!register.existsMarshaller(void.class)) {
             register.registerMarshaller(void.class, new VoidMarshaller());
         }
-        if (!register.existsMarshaller(Void.class)) {
-            register.registerMarshaller(void.class, new VoidMarshaller());
-        }
     }
 
     @Override

@@ -12,7 +12,7 @@ public class DefaultTypeConvertCustomizer implements TypeConvertCustomizer {
 
     @Override
     public void customize(TypeConvertRegister register) {
-        if (register.existsConvert(void.class)) {
+        if (!register.existsConvert(void.class)) {
             register.registerConvert(void.class, new VoidTypeConvert());
         }
     }
