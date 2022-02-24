@@ -2,6 +2,7 @@ package com.fuller.component.xrpc.test;
 
 import com.fuller.component.xrpc.annotation.XRPC;
 import com.fuller.component.xrpc.annotation.XRPCReference;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,8 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Map;
-
 /**
  * @author Allen Huang on 2022/2/23
  */
@@ -21,6 +20,25 @@ public class ReferenceTest {
 
     @Autowired
     private ReferenceService referenceService;
+
+    @Test
+    public void genericsMethodTest() {
+        Student student = new Student();
+        student.setAge(1);
+        student.setName("Java");
+        Computer computer = new Computer();
+        computer.setName("computer");
+        computer.setCoreSize(48);
+        referenceService.demoService.genericsMethod(student, computer);
+    }
+
+    @Test
+    public void multipleTest() {
+        referenceService.demoService.multiple2("args1", "args2");
+        referenceService.demoService.multiple3("args1", "args2", "args3");
+        referenceService.demoService.multiple4("args1", "args2", "args3", "args4");
+        referenceService.demoService.multiple5("args1", "args2", "args3", "args4", "args5");
+    }
 
     @Test
     public void injectTest() {
@@ -40,7 +58,7 @@ public class ReferenceTest {
     }
 
     @Test
-    public void numberTest(){
+    public void numberTest() {
         Assertions.assertThat(referenceService.numberService.integerMethod(1)).isEqualTo(1);
         Assertions.assertThat(referenceService.numberService.integerMethod(null)).isNull();
         Assertions.assertThat(referenceService.numberService.intMethod(1)).isEqualTo(1);
@@ -164,7 +182,18 @@ public class ReferenceTest {
         //无参数无返回值
         void allVoid();
 
-        void aa(Map<String, String> map);
+        //多参数
+
+        void multiple2(String s1, String s2);
+
+        void multiple3(String s1, String s2, String s3);
+
+        void multiple4(String s1, String s2, String s3, String s4);
+
+        void multiple5(String s1, String s2, String s3, String s4, String s5);
+
+        //测试泛型
+        void genericsMethod(Student student, Computer computer);
     }
 
     @Slf4j
@@ -193,10 +222,42 @@ public class ReferenceTest {
         }
 
         @Override
-        public void aa(Map<String, String> map) {
-
+        public void multiple2(String s1, String s2) {
+            log.info("[server]执行了多参数的方法.s1={},s2={}", s1, s2);
         }
+
+        @Override
+        public void multiple3(String s1, String s2, String s3) {
+            log.info("[server]执行了多参数的方法.s1={},s2={},s3={}", s1, s2, s3);
+        }
+
+        @Override
+        public void multiple4(String s1, String s2, String s3, String s4) {
+            log.info("[server]执行了多参数的方法.s1={},s2={},s3={},s4={}", s1, s2, s3, s4);
+        }
+
+        @Override
+        public void multiple5(String s1, String s2, String s3, String s4, String s5) {
+            log.info("[server]执行了多参数的方法.s1={},s2={},s3={},s4={},s5={}", s1, s2, s3, s4, s5);
+        }
+
+        @Override
+        public void genericsMethod(Student student, Computer computer) {
+            log.info("[server]执行了泛型方法.student={},computer={}", student, computer);
+        }
+
     }
 
+    @Data
+    public static class Student {
+        private String name;
+        private int age;
+    }
+
+    @Data
+    public static class Computer {
+        private String name;
+        private int coreSize;
+    }
 
 }

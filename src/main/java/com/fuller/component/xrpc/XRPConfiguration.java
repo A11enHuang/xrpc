@@ -104,15 +104,19 @@ public class XRPConfiguration implements TypeConvertRegister, ServerRegister, Me
 
     @Override
     public ServerCallHandler parseServerCallHandler(Object bean, Method method) {
-        Type parameterType = parseParameterType(method);
-        Type returnType = method.getGenericReturnType();
-        TypeConvert requestConvert = getConvert(parameterType);
-        TypeConvert responseConvert = getConvert(returnType);
-        MethodDescriptor.MethodType methodType = matchMethodType(requestConvert, responseConvert);
-        if (methodType == MethodDescriptor.MethodType.UNARY) {
-            return new ServerAsyncUnaryCallMethod(bean, method, requestConvert, responseConvert).getServerCallHandler();
+        for (MethodParameterParser parser : parameterParsers) {
+            if (parser.isSupport(method)) {
+                Type parameterType = parseParameterType(method);
+                Type returnType = method.getGenericReturnType();
+                TypeConvert requestConvert = getConvert(parameterType);
+                TypeConvert responseConvert = getConvert(returnType);
+                MethodDescriptor.MethodType methodType = matchMethodType(requestConvert, responseConvert);
+                if (methodType == MethodDescriptor.MethodType.UNARY) {
+                    return new ServerAsyncUnaryCallMethod(bean, method, requestConvert, responseConvert, parser).getServerCallHandler();
+                }
+            }
         }
-        return null;
+        throw new BeanCreationException("无法解析gRPC服务方法." + method.getDeclaringClass().getName() + "#" + method.getName());
     }
 
     @Override

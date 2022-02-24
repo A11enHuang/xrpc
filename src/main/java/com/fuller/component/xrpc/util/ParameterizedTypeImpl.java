@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+/**
+ * @author Allen Huang on 2022/2/11
+ */
 public class ParameterizedTypeImpl implements ParameterizedType, Serializable {
     private static final long serialVersionUID = 1L;
 

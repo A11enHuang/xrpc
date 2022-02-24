@@ -2,12 +2,15 @@ package com.fuller.component.xrpc.provider;
 
 import com.fuller.component.xrpc.Invoker;
 import com.fuller.component.xrpc.convert.TypeConvert;
+import com.fuller.component.xrpc.parser.MethodParameterParser;
 import io.grpc.ServerCallHandler;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Allen Huang on 2022/2/23
@@ -17,17 +20,20 @@ public class ServerAsyncUnaryCallMethod implements ServerCalls.UnaryMethod, Serv
 
     protected final Object target;
     protected final Method method;
+    protected final Handler handler;
     protected final TypeConvert requestConvert;
     protected final TypeConvert responseConvert;
-    protected final Handler handler;
+    protected final MethodParameterParser parameterParser;
 
     public ServerAsyncUnaryCallMethod(Object target, Method method,
                                       TypeConvert requestConvert,
-                                      TypeConvert responseConvert) {
+                                      TypeConvert responseConvert,
+                                      MethodParameterParser parameterParser) {
         this.target = target;
         this.method = method;
         this.requestConvert = requestConvert;
         this.responseConvert = responseConvert;
+        this.parameterParser = parameterParser;
         if (method.getParameterCount() == 0) {
             this.handler = new VoidHandler();
         } else {
@@ -39,7 +45,8 @@ public class ServerAsyncUnaryCallMethod implements ServerCalls.UnaryMethod, Serv
     public void invoke(Object request, StreamObserver responseObserver) {
         try {
             Object obj = requestConvert.convertFrom(request);
-            Object response = handler.handle(target, method, obj);
+            List<Object> param = parameterParser.toMethodValue(method, obj);
+            Object response = handler.handle(target, method, param);
             Object result = responseConvert.convertTo(response);
             responseObserver.onNext(result);
         } catch (Exception e) {
@@ -56,13 +63,13 @@ public class ServerAsyncUnaryCallMethod implements ServerCalls.UnaryMethod, Serv
     }
 
     private interface Handler {
-        Object handle(Object target, Method method, Object args);
+        Object handle(Object target, Method method, List<Object> args);
     }
 
     private static class DefaultHandler extends Invoker implements Handler {
 
         @Override
-        public Object handle(Object target, Method method, Object args) {
+        public Object handle(Object target, Method method, List<Object> args) {
             return invoke(target, method, args);
         }
     }
@@ -70,8 +77,8 @@ public class ServerAsyncUnaryCallMethod implements ServerCalls.UnaryMethod, Serv
     private static class VoidHandler extends Invoker implements Handler {
 
         @Override
-        public Object handle(Object target, Method method, Object args) {
-            return invoke(target, method);
+        public Object handle(Object target, Method method, List<Object> args) {
+            return invoke(target, method, Collections.emptyList());
         }
     }
 

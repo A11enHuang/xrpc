@@ -22,7 +22,7 @@ public class DefaultMethodParameterParser implements MethodParameterParser {
     }
 
     @Override
-    public Object parseValue(Method method, Object[] args) {
+    public Object toRpcValue(Method method, Object[] args) {
         return args == null ? null : args.length == 0 ? null : args[0];
     }
 

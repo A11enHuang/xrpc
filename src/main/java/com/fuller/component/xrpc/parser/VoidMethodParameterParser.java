@@ -18,7 +18,7 @@ public class VoidMethodParameterParser implements MethodParameterParser {
     }
 
     @Override
-    public Object parseValue(Method method, Object[] args) {
+    public Object toRpcValue(Method method, Object[] args) {
         return null;
     }
 

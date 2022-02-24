@@ -21,9 +21,10 @@ import java.util.stream.Stream;
  */
 public class Invoker {
 
+    // 缓存的方法执行器
     private static final Map<Method, MethodInvoker> methodCache = new ConcurrentHashMap<>();
 
-    protected Object invoke(Object instance, Method method, Object... args) {
+    protected Object invoke(Object instance, Method method, List<Object> args) {
         try {
             return cachedInvoker(method).invoke(instance, method, args);
         } catch (Throwable e) {
@@ -65,7 +66,7 @@ public class Invoker {
 
 
     interface MethodInvoker {
-        Object invoke(Object instance, Method method, Object[] args) throws Throwable;
+        Object invoke(Object instance, Method method, List<Object> args) throws Throwable;
     }
 
     private static class DefaultMethodInvoker implements MethodInvoker {
@@ -77,8 +78,9 @@ public class Invoker {
         }
 
         @Override
-        public Object invoke(Object instance, Method method, Object... args) throws Throwable {
+        public Object invoke(Object instance, Method method, List<Object> args) throws Throwable {
             return methodHandle.bindTo(instance).invokeWithArguments(args);
         }
+
     }
 }

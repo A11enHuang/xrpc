@@ -3,7 +3,6 @@ package com.fuller.component.xrpc.consumer;
 import com.fuller.component.xrpc.convert.TypeConvert;
 import com.fuller.component.xrpc.exception.RpcException;
 import com.fuller.component.xrpc.parser.MethodParameterParser;
-import com.fuller.component.xrpc.wrapper.BooleanWrapper;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
@@ -27,7 +26,7 @@ public class UnaryConsumerCaller implements ConsumerCaller {
 
     @Override
     public Object call(Object[] args) {
-        Object value = parser.parseValue(method, args);
+        Object value = parser.toRpcValue(method, args);
         Object request = requestConvert.convertTo(value);
         if (request == null) {
             throw new RpcException("请求参数值不能为空.");
